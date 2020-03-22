@@ -10,6 +10,7 @@ from collections import defaultdict as ddict
 from Quadratic import Quadratic
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
 def angle_combinations(angles: List[int]) -> List[Tuple[int]]:
     """
@@ -56,7 +57,9 @@ def polygon_area(x: Quadratic, y: Quadratic) -> Quadratic:
 def simulation(cycle: Tuple[int], dist: List[Quadratic]) -> List[List[Quadratic]]:
     """
     Runs the simulation on a specific cycle. All possible distances between 
-    angles (given in dist) are tested.
+    angles (given in dist) are tested. Could be improved quite a lot by using 
+    a backtracking approach, but we can get away with an inefficient approach
+    since n is quite small.
     """
     # Generate sin and cos functions
     sin = { 0: Quadratic(0),     45: Quadratic(0, 0.5),
@@ -92,6 +95,10 @@ def simulation_step(res, sin, cos, d, rational) -> None:
             dst = Quadratic(0, 0.5*d[i])
         x += dst*cos[(cur_angle+180-angle)%360]
         y += dst*sin[(cur_angle+180-angle)%360]
+        
+        # Terminate early by convexity
+        if y < Quadratic(0):
+            break
         
         X.append(x)
         Y.append(y)
@@ -141,18 +148,24 @@ if __name__ == "__main__":
     # but multiplied by sqrt(2)/2.
     dist = [0.5, 1, 1.5, 2, 2.5, 3]
     
-    # Run the simulation for n-gons with n <= n_max. n_max <= 8, but 
+    # Run the simulation for n-gons with n <= n_max. n_max <= 8 
+    t1 = time.time()
     res = []
-    n_max = 6
+    n_max = 8
     for key in range(3, n_max+1):
         print("Starting on {}".format(key))
         for cycle in all_cycles[key]:
-            res += simulation(cycle, dist)
+            if key > 4:
+                res += simulation(cycle, dist[:len(dist)-2])
+            else:
+                res += simulation(cycle, dist)
     res = np.array(res)
     print("Found {} possible polygons!".format(len(res)))
     np.save('data', res) # Save the data
-    
+    t2 = time.time()
     graph_results()
+    
+    print("Took {} to complete!".format(t2-t1))
     
     
     

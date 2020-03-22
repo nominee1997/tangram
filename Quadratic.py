@@ -36,6 +36,9 @@ class Quadratic:
     def __eq__(self, B):
         return self.a == B.a and self.b == B.b
     
+    def __lt__(self, B):
+        return float(self) < float(B)
+    
 if __name__ == "__main__":
     number = Quadratic(1, 0.5)
     print(number*number)
